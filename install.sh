@@ -78,7 +78,10 @@ fi
 
 say "Latest version: $TAG"
 say "Downloading binary..."
-ASSET_FILE="$TMPDIR/asset.tar.gz"
+# Download using the asset's basename so checksum verification with `shasum -c`
+# can reference the correct filename from SHA256SUMS.
+BASENAME=$(basename "$ASSET_URL")
+ASSET_FILE="$TMPDIR/$BASENAME"
 curl -fsSL -o "$ASSET_FILE" "$ASSET_URL" || { err "Download failed."; exit 1; }
 
 # Try to fetch checksums and verify (best-effort)
@@ -92,11 +95,11 @@ if [ -n "$SUMS_URL" ]; then
   say "Verifying checksum..."
   curl -fsSL -o "$TMPDIR/SHA256SUMS" "$SUMS_URL" || true
   if [ -s "$TMPDIR/SHA256SUMS" ]; then
-    # Restrict to our asset line
-    BASENAME=$(basename "$ASSET_URL")
-    grep " $BASENAME\$" "$TMPDIR/SHA256SUMS" | shasum -a 256 -c - >/dev/null 2>&1 || {
-      err "Checksum verification failed."; exit 1;
-    }
+    # Verify in TMPDIR so `shasum -c` finds $BASENAME referenced in the sums file
+    (
+      cd "$TMPDIR"
+      grep " $BASENAME\$" "$TMPDIR/SHA256SUMS" | shasum -a 256 -c -
+    ) >/dev/null 2>&1 || { err "Checksum verification failed."; exit 1; }
   fi
 fi
 
@@ -110,11 +113,14 @@ fi
 
 TARGET="$INSTALL_DIR/$CMD_NAME"
 
-if [ -w "$(dirname "$INSTALL_DIR")" ] || [ -w "$INSTALL_DIR" ]; then
-  mkdir -p "$INSTALL_DIR"
-else
-  say "Using sudo to create $INSTALL_DIR"
-  sudo mkdir -p "$INSTALL_DIR"
+# Create install dir only if missing; avoid sudo if it already exists
+if [ ! -d "$INSTALL_DIR" ]; then
+  if [ -w "$(dirname "$INSTALL_DIR")" ]; then
+    mkdir -p "$INSTALL_DIR"
+  else
+    say "Using sudo to create $INSTALL_DIR"
+    sudo mkdir -p "$INSTALL_DIR"
+  fi
 fi
 
 if [ -w "$INSTALL_DIR" ]; then
@@ -131,4 +137,3 @@ fi
 say "Installed: $TARGET"
 say "Version: $TAG"
 say "Run: $CMD_NAME --help"
-
