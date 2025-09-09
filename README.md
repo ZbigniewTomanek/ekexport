@@ -17,7 +17,7 @@
 
 ## Motivation
 
-I built ekexport after running into limitations with AppleScript-based approaches. In my setup, AppleScript could only reliably export events stored locally and struggled to access events from cloud-synced calendars. Having a single tool that exports everything visible in the Apple Calendar app is far more convenient because macOS manages access to all accounts (iCloud, Google, etc.) under one permissions model—no need to juggle separate access tokens for each provider. This makes automation straightforward and dependable, which is especially useful for my AI agent running on a Mac mini server.
+I built ekexport after running into limitations with AppleScript-based approaches. In my setup, AppleScript could only reliably export events stored locally and struggled to access events from cloud-synced calendars. Having a single tool that exports everything visible in the Apple Calendar app is far more convenient because macOS manages access to all accounts (iCloud, Google, etc.) under one permissions model—no need to juggle separate access tokens for each provider. This makes automation straightforward and dependable, which is especially useful for my personal AI agent running on a Mac mini server.
 
 ## Requirements
 
@@ -281,9 +281,27 @@ If you see permission errors:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Project Development
+
+This project was developed using an AI-assisted approach:
+
+1. **Initial Research Phase**: I realized I needed a reliable way to export calendar data from macOS and crafted a detailed research prompt for Gemini (available in `docs/0-starting-prompt.md`)
+
+2. **Design Phase**: The AI produced a comprehensive implementation plan (`docs/1-implementation-plan.md`) that included:
+   - Deep dive into EventKit APIs and macOS security model
+   - Detailed architecture design with layered approach
+   - Complete CLI interface specification
+   - Build and deployment strategy
+   - Testing methodology
+
+3. **Implementation**: Following the generated plan, I implemented the tool with Swift using claude code and codex, making only minor adjustments (notably choosing "ekexport" over the AI's suggested "calex" name)
+
+This approach allowed for thorough upfront planning and resulted in a well-architected, production-ready tool that handles the complexities of macOS calendar data access properly.
+
 ## Credits
 
 Built with:
 - [Swift ArgumentParser](https://github.com/apple/swift-argument-parser) for CLI interface
+- [SwiftIcal](https://github.com/tbartelmess/swift-ical) for iCalendar format generation
 - EventKit framework for calendar/reminder access
 - Swift Package Manager for dependency management
