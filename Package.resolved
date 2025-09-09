@@ -8,6 +8,24 @@
         "revision" : "309a47b2b1d9b5e991f36961c983ecec72275be3",
         "version" : "1.6.1"
       }
+    },
+    {
+      "identity" : "swift-ical",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tbartelmess/swift-ical.git",
+      "state" : {
+        "revision" : "b94f9e8f4d316d946208f37d749a872a1774d702",
+        "version" : "0.0.8"
+      }
+    },
+    {
+      "identity" : "swift-tools-support-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-tools-support-core.git",
+      "state" : {
+        "revision" : "e8fbc8b05a155f311b862178d92d043afb216fe3",
+        "version" : "0.7.3"
+      }
     }
   ],
   "version" : 2

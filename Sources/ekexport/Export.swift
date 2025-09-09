@@ -44,6 +44,12 @@ struct Export: AsyncParsableCommand {
     
     @Option(
         name: .long,
+        help: "The output directory where files will be saved. Creates the directory if it doesn't exist."
+    )
+    var outputDir: String?
+    
+    @Option(
+        name: .long,
         help: "The output format. Supported: ics, json."
     )
     var format: ExportFormat = .ics
@@ -82,32 +88,16 @@ struct Export: AsyncParsableCommand {
         let outputString: String
         switch format {
         case .ics:
-            // Minimal ICS with only VEVENT blocks for demonstration
-            var lines: [String] = [
-                "BEGIN:VCALENDAR",
-                "VERSION:2.0",
-                "PRODID:-//ekexport//EN"
-            ]
-            let dfUTC = ISO8601DateFormatter()
-            dfUTC.timeZone = TimeZone(secondsFromGMT: 0)
-            func icsDate(_ date: Date) -> String {
-                let fmt = DateFormatter()
-                fmt.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
-                fmt.timeZone = TimeZone(secondsFromGMT: 0)
-                return fmt.string(from: date)
+            let icsSerializer = ICSSerializer()
+            do {
+                outputString = try icsSerializer.serialize(events: evts, reminders: rems)
+            } catch let error as SerializationError {
+                print("Serialization error: \(error.description)", to: &StandardError.shared)
+                throw error
+            } catch {
+                print("Unknown serialization error: \(error.localizedDescription)", to: &StandardError.shared)
+                throw error
             }
-            for e in evts {
-                lines.append(contentsOf: [
-                    "BEGIN:VEVENT",
-                    "UID:\(e.id)",
-                    "DTSTART:\(icsDate(e.start))",
-                    "DTEND:\(icsDate(e.end))",
-                    "SUMMARY:\(e.title.replacingOccurrences(of: "\n", with: "\\n"))",
-                    "END:VEVENT"
-                ])
-            }
-            lines.append("END:VCALENDAR")
-            outputString = lines.joined(separator: "\n")
         case .json:
             let jsonSerializer = JSONSerializer()
             do {
@@ -121,7 +111,24 @@ struct Export: AsyncParsableCommand {
             }
         }
 
+        // Handle output
         if let outputPath = output {
+            try outputString.write(toFile: outputPath, atomically: true, encoding: .utf8)
+            print("Successfully exported \(evts.count) events\(includeReminders ? ", \(rems.count) reminders" : "") to \(outputPath)", to: &StandardError.shared)
+        } else if let outputDirectory = outputDir {
+            // Create output directory if it doesn't exist
+            let fileManager = FileManager.default
+            try fileManager.createDirectory(atPath: outputDirectory, withIntermediateDirectories: true, attributes: nil)
+            
+            let fileName: String
+            switch format {
+            case .json:
+                fileName = "export.json"
+            case .ics:
+                fileName = "export.ics"
+            }
+            
+            let outputPath = URL(fileURLWithPath: outputDirectory).appendingPathComponent(fileName).path
             try outputString.write(toFile: outputPath, atomically: true, encoding: .utf8)
             print("Successfully exported \(evts.count) events\(includeReminders ? ", \(rems.count) reminders" : "") to \(outputPath)", to: &StandardError.shared)
         } else {
