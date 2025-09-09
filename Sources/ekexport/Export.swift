@@ -49,14 +49,6 @@ struct Export: AsyncParsableCommand {
     var format: ExportFormat = .ics
     
     func run() async throws {
-        print("=== Export Command Arguments ===", to: &StandardError.shared)
-        print("Calendars: \(calendars.isEmpty ? "All calendars" : calendars.joined(separator: ", "))", to: &StandardError.shared)
-        print("Start Date: \(startDate ?? "Unbounded")", to: &StandardError.shared)
-        print("End Date: \(endDate ?? "Unbounded")", to: &StandardError.shared)
-        print("Include Reminders: \(includeReminders)", to: &StandardError.shared)
-        print("Output: \(output ?? "stdout")", to: &StandardError.shared)
-        print("Format: \(format.rawValue)", to: &StandardError.shared)
-        print("================================", to: &StandardError.shared)
         // Parse dates
         let start: Date? = startDate.flatMap(DateUtils.parseISODate)
         let end: Date? = endDate.flatMap(DateUtils.parseISODate)
@@ -86,7 +78,7 @@ struct Export: AsyncParsableCommand {
             rems = try await service.reminders(calendars: calendars.isEmpty ? nil : calendars, includeCompleted: false, dueStart: start, dueEnd: end)
         }
 
-        // Temporary serialization until dedicated serializers land
+        // Serialize using the dedicated serializers
         let outputString: String
         switch format {
         case .ics:
@@ -117,22 +109,16 @@ struct Export: AsyncParsableCommand {
             lines.append("END:VCALENDAR")
             outputString = lines.joined(separator: "\n")
         case .json:
-            let dict: [String: Any] = [
-                "events": evts.map { [
-                    "id": $0.id,
-                    "title": $0.title,
-                    "startDate": ISO8601DateFormatter().string(from: $0.start),
-                    "endDate": ISO8601DateFormatter().string(from: $0.end),
-                    "notes": $0.notes as Any
-                ] },
-                "reminders": rems.map { [
-                    "id": $0.id,
-                    "title": $0.title,
-                    "dueDate": $0.dueDate.map { ISO8601DateFormatter().string(from: $0) } as Any
-                ] }
-            ]
-            let json = try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted])
-            outputString = String(data: json, encoding: .utf8) ?? "{}"
+            let jsonSerializer = JSONSerializer()
+            do {
+                outputString = try jsonSerializer.serialize(events: evts, reminders: rems)
+            } catch let error as SerializationError {
+                print("Serialization error: \(error.description)", to: &StandardError.shared)
+                throw error
+            } catch {
+                print("Unknown serialization error: \(error.localizedDescription)", to: &StandardError.shared)
+                throw error
+            }
         }
 
         if let outputPath = output {

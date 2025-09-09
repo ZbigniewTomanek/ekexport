@@ -42,6 +42,23 @@ public enum DataAccessError: Error, CustomStringConvertible, Sendable {
     }
 }
 
+public enum SerializationError: Error, CustomStringConvertible, Sendable {
+    case encodingFailed(String)
+    case unsupportedFormat(String)
+    case invalidData(String)
+    
+    public var description: String {
+        switch self {
+        case .encodingFailed(let message):
+            return "Serialization encoding failed: \(message)"
+        case .unsupportedFormat(let format):
+            return "Unsupported serialization format: \(format)"
+        case .invalidData(let message):
+            return "Invalid data for serialization: \(message)"
+        }
+    }
+}
+
 extension AuthorizationScope {
     var label: String {
         switch self { case .events: return "Calendars"; case .reminders: return "Reminders" }
