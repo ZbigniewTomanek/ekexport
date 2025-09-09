@@ -1,6 +1,6 @@
 # ekexport
 
-**A secure, production-grade macOS command-line tool for exporting calendar events and reminders to various formats.**
+**A simple acOS command-line tool for exporting calendar events and reminders to various formats.**
 
 `ekexport` provides a clean, scriptable interface to access your macOS Calendar and Reminders data, supporting both iCalendar (.ics) and JSON export formats. Built with Swift and designed for automation, the tool respects macOS privacy controls and provides stable, reliable access to your calendar data across multiple accounts (iCloud, Google, Exchange, etc.).
 
@@ -186,7 +186,7 @@ Structured JSON with metadata and comprehensive event/reminder data:
 make build
 swift build
 
-# Release build  
+# Release build
 make release
 swift build -c release
 
@@ -197,18 +197,6 @@ swift run ekexport list-calendars --verbose
 # Clean build artifacts
 make clean
 ```
-
-### Makefile Targets
-
-- `make help` — List available targets
-- `make build` — Build debug binary
-- `make run ARGS="..."` — Run with optional arguments
-- `make release` — Build optimized release binary
-- `make release-run ARGS="..."` — Run optimized binary
-- `make test` — Run tests
-- `make clean` — Clean build artifacts
-- `make install` — Install to `/usr/local/bin` (override with `PREFIX=/path`)
-- `make uninstall` — Remove installed binary
 
 ## Architecture
 
