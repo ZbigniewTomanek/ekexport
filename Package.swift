@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "ekexport",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v13)
     ],
     products: [
         .executable(name: "ekexport", targets: ["ekexport"])
@@ -13,13 +13,18 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.0.0")
     ],
     targets: [
+        .target(
+            name: "EkExportCore",
+            dependencies: [],
+            path: "Sources/EkExportCore"
+        ),
         .executableTarget(
             name: "ekexport",
             dependencies: [
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "EkExportCore"
             ],
             path: "Sources/ekexport"
         )
     ]
 )
-
