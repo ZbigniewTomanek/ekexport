@@ -15,6 +15,10 @@
 - **Script-Friendly**: Clean stdout output perfect for pipes and automation
 - **Production Ready**: Comprehensive error handling and user guidance
 
+## Motivation
+
+I built ekexport after running into limitations with AppleScript-based approaches. In my setup, AppleScript could only reliably export events stored locally and struggled to access events from cloud-synced calendars. Having a single tool that exports everything visible in the Apple Calendar app is far more convenient because macOS manages access to all accounts (iCloud, Google, etc.) under one permissions model—no need to juggle separate access tokens for each provider. This makes automation straightforward and dependable, which is especially useful for my AI agent running on a Mac mini server.
+
 ## Requirements
 
 - **macOS 13.0+** (Ventura or later)
@@ -22,6 +26,16 @@
 - **Calendar/Reminders Access**: The tool will request permission on first run
 
 ## Installation
+
+### Quick Install (macOS arm64)
+
+Install the latest prebuilt binary (Apple Silicon, macOS 13+):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZbigniewTomanek/ekexport/main/install.sh | sh
+```
+
+The script verifies your macOS version (13+) and Apple Silicon (arm64) architecture, downloads the latest GitHub release, and installs `ekexport` to `/usr/local/bin`.
 
 ### Option 1: Build from Source
 
@@ -197,6 +211,12 @@ swift run ekexport list-calendars --verbose
 # Clean build artifacts
 make clean
 ```
+
+## Binary Releases
+
+- Precompiled binaries are published on the GitHub Releases page for Apple Silicon (arm64) macOS 13+.
+- Asset name: `ekexport-vX.Y.Z-macos-arm64.tar.gz` with accompanying `SHA256SUMS`.
+- Manual install: download and extract the archive, then copy `ekexport` to `/usr/local/bin/ekexport`.
 
 ## Architecture
 

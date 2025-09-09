@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release (macOS arm64)
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show swift and system info
+        run: |
+          swift --version
+          uname -a
+          sw_vers
+          uname -m
+
+      - name: Build (release, arm64)
+        run: |
+          # On Apple Silicon runner, default arch is arm64
+          swift build -c release
+
+      - name: Package artifacts
+        id: pkg
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME}"
+          # Sanity: ensure binary exists
+          BIN_PATH=".build/release/ekexport"
+          test -x "$BIN_PATH"
+
+          STAGE_DIR="release_stage/ekexport"
+          mkdir -p "$STAGE_DIR"
+          cp "$BIN_PATH" "$STAGE_DIR/ekexport"
+          # Include top-level README and LICENSE if present
+          [ -f README.md ] && cp README.md "$STAGE_DIR/README.md" || true
+          [ -f LICENSE ] && cp LICENSE "$STAGE_DIR/LICENSE" || true
+
+          ARCHIVE_NAME="ekexport-${VERSION}-macos-arm64.tar.gz"
+          tar -C release_stage -czf "$ARCHIVE_NAME" ekexport
+          shasum -a 256 "$ARCHIVE_NAME" > SHA256SUMS
+
+          echo "archive=$ARCHIVE_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ekexport ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          files: |
+            ${{ steps.pkg.outputs.archive }}
+            SHA256SUMS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
