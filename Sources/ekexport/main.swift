@@ -1,4 +1,13 @@
 import Foundation
+import ArgumentParser
 
-print("Hello, world from ekexport!")
+struct EkExport: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "ekexport",
+        abstract: "A secure macOS Calendar and Reminders export tool",
+        subcommands: [Export.self, ListCalendars.self]
+    )
+}
+
+EkExport.main()
 

@@ -9,9 +9,15 @@ let package = Package(
     products: [
         .executable(name: "ekexport", targets: ["ekexport"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.0.0")
+    ],
     targets: [
         .executableTarget(
             name: "ekexport",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             path: "Sources/ekexport"
         )
     ]
